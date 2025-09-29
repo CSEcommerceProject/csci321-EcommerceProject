@@ -1,32 +1,39 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-
-const links = [
-  { href: "/", label: "Home" },
-  { href: "/auth/signin", label: "Sign in" },
-  { href: "/auth/signup", label: "Sign up" },
-];
+import { useSession, signOut } from "next-auth/react";
 
 export default function Navbar() {
-  const pathname = usePathname();
+  const { data: session, status } = useSession();
+
   return (
-    <header className="bg-white border-b">
-      <nav className="mx-auto max-w-6xl flex items-center justify-between p-4">
-        <Link href="/" className="font-semibold">Campus Shop</Link>
-        <ul className="flex gap-4">
-          {links.map(l => (
-            <li key={l.href}>
-              <Link
-                href={l.href}
-                className={`px-2 py-1 rounded ${pathname === l.href ? "bg-gray-100" : ""}`}
-              >
-                {l.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
-    </header>
+    <nav className="flex items-center justify-between px-4 py-3 bg-white shadow">
+      <Link href="/" className="text-xl font-bold">Campus Shop</Link>
+      <div className="flex gap-4 items-center">
+        <Link href="/products">Products</Link>
+        <Link href="/cart">Cart</Link>
+
+        {status === "loading" && <span>Loading…</span>}
+
+        {status === "authenticated" ? (
+          <>
+            <span className="text-sm">Hi, {session.user?.name ?? session.user?.email}</span>
+            <button
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className="rounded bg-black px-3 py-1 text-white"
+            >
+              Sign out
+            </button>
+          </>
+        ) : (
+          <Link
+            href="/auth/signin"
+            className="rounded bg-black px-3 py-1 text-white"
+          >
+            Sign in
+          </Link>
+        )}
+      </div>
+    </nav>
   );
 }
+
