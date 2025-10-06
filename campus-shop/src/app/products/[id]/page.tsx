@@ -1,21 +1,51 @@
+import Image from "next/image";
+import { notFound } from "next/navigation";
+import { prisma } from "@/lib/prisma";
 import AddToCartButton from "@/components/AddToCartButton";
 
-export default function ProductDetail({ params }: { params: { id: string } }) {
-  const dummy = {
-    1: { id: 1, title: "Campus Hoodie", description: "Cozy hoodie", priceCents: 4500 },
-    2: { id: 2, title: "Sticker Pack", description: "5 stickers", priceCents: 700 },
-  } as const;
+export default async function ProductDetail({ params }: { params: { id: string } }) {
+  const id = Number(params.id);
+  if (Number.isNaN(id)) return notFound();
 
-  const product = dummy[params.id as "1" | "2"];
-  if (!product) return <p className="p-6">Product not found.</p>;
+  const product = await prisma.product.findUnique({
+    where: { id },
+  });
+
+  if (!product || !product.isApproved) return notFound();
 
   return (
-    <section className="space-y-3">
-      <h1 className="text-2xl font-bold">{product.title}</h1>
-      <p>{product.description}</p>
-      <div className="text-lg">${(product.priceCents / 100).toFixed(2)}</div>
-      <AddToCartButton id={product.id} title={product.title} priceCents={product.priceCents} />
-    </section>
+    <main className="mx-auto max-w-4xl px-6 py-10 space-y-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg shadow">
+      <div className="grid gap-8 md:grid-cols-2">
+        {/* Image section */}
+        <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-white">
+          <Image
+            src={product.imageUrl}
+            alt={product.imageAlt ?? product.title}
+            fill
+            sizes="(max-width: 768px) 100vw, 50vw"
+            className="object-cover"
+            priority
+          />
+        </div>
+
+        {/* Info section */}
+        <div className="flex flex-col justify-center space-y-4">
+          <h1 className="text-3xl font-bold text-gray-900">{product.title}</h1>
+          {product.description && (
+            <p className="text-gray-700 leading-relaxed">{product.description}</p>
+          )}
+          <div className="text-2xl font-semibold text-green-600">
+            ${(product.priceCents / 100).toFixed(2)}
+          </div>
+
+          {/* Add to Cart button */}
+          <AddToCartButton
+            id={product.id}
+            title={product.title}
+            priceCents={product.priceCents}
+          />
+        </div>
+      </div>
+    </main>
   );
 }
-

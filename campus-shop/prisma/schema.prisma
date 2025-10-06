@@ -4,6 +4,16 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
+enum ProductCategory {
+  LAPTOPS
+  T_SHIRTS
+  SWEATSHIRTS
+  HATS
+  DRINKWARE
+  TAILGATE_SPIRIT
+}
+
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -25,17 +35,22 @@ model User {
 }
 
 model Product {
-  id          Int     @id @default(autoincrement())
+  id          Int              @id @default(autoincrement())
   title       String
   description String?
   priceCents  Int
-  isApproved  Boolean @default(false)
-  seller      User?   @relation(fields: [sellerId], references: [id])
+  isApproved  Boolean          @default(false)
+  seller      User?            @relation(fields: [sellerId], references: [id])
   sellerId    Int?
+  category    ProductCategory
 
-  // back-relation to OrderItem.product
-  orderItems OrderItem[] // ← add this line
+  // NEW fields for images
+  imageUrl    String?           // required (we’ll add in two steps below)
+  imageAlt    String?
+
+  orderItems  OrderItem[]
 }
+
 
 model Order {
   id        Int         @id @default(autoincrement())
