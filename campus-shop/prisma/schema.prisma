@@ -33,25 +33,6 @@ model User {
   orders       Order[]
   products     Product[]
 }
-
-model Product {
-  id          Int              @id @default(autoincrement())
-  title       String
-  description String?
-  priceCents  Int
-  isApproved  Boolean          @default(false)
-  seller      User?            @relation(fields: [sellerId], references: [id])
-  sellerId    Int?
-  category    ProductCategory
-
-  // NEW fields for images
-  imageUrl    String?           // required (we’ll add in two steps below)
-  imageAlt    String?
-
-  orderItems  OrderItem[]
-}
-
-
 model Order {
   id        Int         @id @default(autoincrement())
   createdAt DateTime    @default(now())
@@ -76,3 +57,33 @@ enum Role {
   ADMIN
 }
 
+model Product {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  priceCents  Int
+  isApproved  Boolean  @default(false)
+  category    ProductCategory
+  imageUrl    String?
+  imageAlt    String?
+
+  inStock     Boolean  @default(true)   // 👈 add this
+
+  orderItems         OrderItem[]
+  outOfStockRequests OutOfStockRequest[]
+
+  owner   User? @relation(fields: [ownerId], references: [id])
+  ownerId Int?
+}
+
+model OutOfStockRequest {
+  id             Int      @id @default(autoincrement())
+  createdAt      DateTime @default(now())
+  requesterEmail String
+  requesterName  String?
+  productId      Int?
+  product        Product? @relation(fields: [productId], references: [id])
+  productName    String?
+  note           String?
+  status         String   @default("PENDING")
+}
