@@ -1,7 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import Providers from "./providers";
-import Navbar from "@/components/Navbar";
+import LayoutWrapper from "@/components/LayoutWrapper";
 
 export const metadata: Metadata = {
   title: "Campus Shop",
@@ -12,10 +11,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className="bg-gray-50 text-gray-900">
-        <Providers>
-          <Navbar />
-          <main className="p-4">{children}</main>
-        </Providers>
+        <LayoutWrapper>{children}</LayoutWrapper>
       </body>
     </html>
   );
