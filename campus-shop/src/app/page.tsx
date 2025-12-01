@@ -5,6 +5,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import CategoryGrid from "@/components/CategoryGrid";
 
+
 export default async function HomePage() {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/welcome");
@@ -15,7 +16,7 @@ export default async function HomePage() {
       {/* hero */}
       <section className="relative z-10 mx-auto max-w-2xl text-center py-16">
         <div className="flex justify-center mb-6">
-          <Image src="/stetson-logo.jpg" alt="Stetson Hatters Logo" width={140} height={140} priority />
+          <Image src="/products/hatterLogo.jpg" alt="Stetson Hatters Logo" width={140} height={140} priority />
         </div>
         <h1 className="text-4xl sm:text-5xl font-extrabold">
           Welcome to <span className="text-yellow-300">Campus Shop</span> 🛍️
