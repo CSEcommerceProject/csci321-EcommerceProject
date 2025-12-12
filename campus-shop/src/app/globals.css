@@ -8,6 +8,8 @@
 /* Optional: add your own defaults */
 body {
   font-family: sans-serif;
+  background: linear-gradient(to bottom, #f0fdf4, #ffffff); /* green-50 to white */
+
 }
 
 
@@ -18,3 +20,37 @@ body {
 }
 .animate-blob { animation: blob 8s infinite; }
 .animation-delay-2000 { animation-delay: 2s; }
+
+/* Fade-in up animation */
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Base class */
+.fade-in-up {
+  animation: fadeInUp 1s ease-out forwards;
+}
+
+/* Sequential delays */
+.fade-in-up-delay-1 { animation-delay: 0.2s; }
+.fade-in-up-delay-2 { animation-delay: 0.4s; }
+.fade-in-up-delay-3 { animation-delay: 0.6s; }
+.fade-in-up-delay-4 { animation-delay: 0.8s; }
+.fade-in-up-delay-5 { animation-delay: 1s; }
+.fade-in-up-delay-6 { animation-delay: 1.2s; }
+
+@keyframes slowPulse {
+  0%, 100% { opacity: 0.15; transform: scale(1); }
+  50% { opacity: 0.25; transform: scale(1.05); }
+}
+
+.animate-slowPulse {
+  animation: slowPulse 12s ease-in-out infinite;
+}

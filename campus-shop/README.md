@@ -1,18 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🛍️ Campus Shop – Stetson Student Marketplace
+Campus Shop is a full-stack e-commerce web application built with **Next.js**, **Prisma**, and **NextAuth**.  
+It allows users to browse products, manage a **personal cart**, place orders, and apply **Stetson student discounts**.
+Each authenticated user has their **own cart**, ensuring cart items are not shared across users.
+---
+## ✨ Features
+
+- User authentication (Sign up & Sign in)
+- Secure password hashing
+- Product browsing by category
+- User-specific shopping cart
+- Persistent cart across sessions
+- Student discount eligibility
+- Checkout flow with order confirmation
+- Prisma + SQLite database
+- Responsive UI using Tailwind CSS
+---
+## 🧰 Tech Stack
+
+- **Frontend:** Next.js (App Router), React, TypeScript
+- **Backend:** Next.js API Routes
+- **Database:** SQLite with Prisma ORM
+- **Authentication:** NextAuth (Credentials Provider)
+- **Styling:** Tailwind CSS
+- **State Management:** React Context API
+
+---
+
+## 📁 Project Structure (Simplified)
 
 ## Getting Started
-
-First, run the development server:
+---
+## 🚀 Installation & Setup
+Follow these steps to run the project on **any machine**.
+---
+### 1️⃣ Clone the Repository
 
 ```bash
+git clone https://github.com/YOUR_USERNAME/campus-shop.git
+cd campus-shop
+
+Install Dependencies 
+npm install
+
+Create Environment Variables : Create a .env file in the root directory and add
+DATABASE_URL="file:./prisma/dev.db"
+NEXTAUTH_SECRET="your-secret-key"; generate key with : openssl rand -base64 32
+NEXTAUTH_URL="http://localhost:3000"
+
+Set Up the Database
+npx prisma migrate dev
+npx prisma generate
+
+View DATABASE
+npx prisma studio
+
+Start Development Server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 

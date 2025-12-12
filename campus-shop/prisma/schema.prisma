@@ -13,7 +13,6 @@ enum ProductCategory {
   TAILGATE_SPIRIT
 }
 
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -32,32 +31,16 @@ model User {
   createdAt    DateTime  @default(now())
   orders       Order[]
   products     Product[]
+  cart         Cart?     @relation("UserCart") // 👈 Relation name matches below
 }
-
-model Product {
-  id          Int              @id @default(autoincrement())
-  title       String
-  description String?
-  priceCents  Int
-  isApproved  Boolean          @default(false)
-  seller      User?            @relation(fields: [sellerId], references: [id])
-  sellerId    Int?
-  category    ProductCategory
-
-  // NEW fields for images
-  imageUrl    String?           // required (we’ll add in two steps below)
-  imageAlt    String?
-
-  orderItems  OrderItem[]
-}
-
 
 model Order {
-  id        Int         @id @default(autoincrement())
-  createdAt DateTime    @default(now())
-  buyer     User        @relation(fields: [buyerId], references: [id])
-  buyerId   Int
-  items     OrderItem[]
+  id         Int         @id @default(autoincrement())
+  createdAt  DateTime    @default(now())
+  buyer      User        @relation(fields: [buyerId], references: [id])
+  totalCents Int         @default(0) // 👈 add this line
+  buyerId    Int
+  items      OrderItem[]
 }
 
 model OrderItem {
@@ -75,3 +58,49 @@ enum Role {
   ADMIN
 }
 
+model Product {
+  id          Int             @id @default(autoincrement())
+  title       String
+  description String?
+  priceCents  Int
+  isApproved  Boolean         @default(false)
+  category    ProductCategory
+  imageUrl    String?
+  imageAlt    String?
+  inStock     Boolean         @default(true)
+
+  orderItems         OrderItem[]
+  outOfStockRequests OutOfStockRequest[]
+  cartItems          CartItem[] // 👈 reverse relation
+  owner              User?               @relation(fields: [ownerId], references: [id])
+  ownerId            Int?
+}
+
+model OutOfStockRequest {
+  id             Int      @id @default(autoincrement())
+  createdAt      DateTime @default(now())
+  requesterEmail String
+  requesterName  String?
+  productId      Int?
+  product        Product? @relation(fields: [productId], references: [id])
+  productName    String?
+  note           String?
+  status         String   @default("PENDING")
+}
+
+model Cart {
+  id        Int        @id @default(autoincrement())
+  user      User       @relation("UserCart", fields: [userId], references: [id])
+  userId    Int        @unique // 👈 add this line
+  items     CartItem[]
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id        Int     @id @default(autoincrement())
+  cart      Cart    @relation(fields: [cartId], references: [id])
+  cartId    Int
+  product   Product @relation(fields: [productId], references: [id])
+  productId Int
+  quantity  Int     @default(1)
+}
