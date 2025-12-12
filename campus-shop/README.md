@@ -36,7 +36,7 @@ Follow these steps to run the project on **any machine**.
 ### 1️⃣ Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/campus-shop.git
+git clone https://github.com/CSEcommerceProject/csci321-EcommerceProject.git
 cd campus-shop
 
 Install Dependencies 
