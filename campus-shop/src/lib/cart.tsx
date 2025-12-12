@@ -1,8 +1,15 @@
 "use client";
+
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 
-export type CartItem = { id: number; title: string; priceCents: number; qty: number };
+export type CartItem = {
+  id: number;
+  title: string;
+  priceCents: number;
+  qty: number;
+  imageUrl?: string;
+};
 
 type CartCtx = {
   items: CartItem[];
@@ -12,42 +19,51 @@ type CartCtx = {
   setQty: (id: number, qty: number) => Promise<void>;
   clear: () => Promise<void>;
   totalCents: number;
+  discountPercent: number;
+  setDiscount: (percent: number) => void;
 };
 
 const Ctx = createContext<CartCtx | null>(null);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  // 🔹 Fetch cart for authenticated users + merge local storage items
+  const [items, setItems] = useState<CartItem[]>([]);
+  const [discountPercent, setDiscountPercent] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  // --------------------------------------------------
+  // 🔹 Load initial discount from localStorage
+  // --------------------------------------------------
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("cart:discount:v1");
+      if (raw) setDiscountPercent(Number(raw));
+    } catch {}
+  }, []);
+
+  // --------------------------------------------------
+  // 🔹 Load Cart
+  //  - unauthenticated → load from localStorage only
+  //  - authenticated → load from server
+  // --------------------------------------------------
   useEffect(() => {
     async function loadCart() {
       try {
-        // Wait until the user is authenticated
-        if (status !== "authenticated") {
-          if (status === "unauthenticated") setLoading(false);
+        if (status === "unauthenticated") {
+          // Load local cart
+          const raw = localStorage.getItem("cart:v1");
+          if (raw) setItems(JSON.parse(raw));
+          setLoading(false);
           return;
         }
 
-        // 🧩 Merge any locally stored items (pre-login) into the server cart
-        const local = localStorage.getItem("cart:v1");
-        if (local) {
-          const localItems = JSON.parse(local);
-          for (const it of localItems) {
-            await fetch("/api/cart", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ productId: it.id, quantity: it.qty }),
-            });
-          }
-          localStorage.removeItem("cart:v1");
-        }
+        if (status !== "authenticated") return;
 
-        // 🔹 Fetch server cart after merging
+        // Authenticated → fetch real cart
         const res = await fetch("/api/cart");
         if (!res.ok) throw new Error("Failed to fetch user cart");
+
         const data = await res.json();
 
         setItems(
@@ -56,10 +72,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             title: it.product.title,
             priceCents: it.product.priceCents,
             qty: it.quantity,
+            imageUrl: it.product.imageUrl,
           })) ?? []
         );
       } catch (err) {
-        console.error(err);
+        console.error("Cart load failed:", err);
       } finally {
         setLoading(false);
       }
@@ -68,40 +85,50 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     loadCart();
   }, [status]);
 
-  // 🔹 Helper to refresh cart after changes
+  // --------------------------------------------------
+  // 🔹 Persist cart + discount to localStorage
+  // --------------------------------------------------
+  useEffect(() => {
+    try {
+      localStorage.setItem("cart:v1", JSON.stringify(items));
+      localStorage.setItem("cart:discount:v1", String(discountPercent));
+    } catch {}
+  }, [items, discountPercent]);
+
+  // --------------------------------------------------
+  // 🔹 Helper to refresh from server
+  // --------------------------------------------------
   async function refresh() {
     const res = await fetch("/api/cart");
     const data = await res.json();
+
     setItems(
       data.items?.map((it: any) => ({
         id: it.productId,
         title: it.product.title,
         priceCents: it.product.priceCents,
         qty: it.quantity,
+        imageUrl: it.product.imageUrl,
       })) ?? []
     );
   }
 
-  // 🔹 Define API
+  // --------------------------------------------------
+  // 🔹 API Actions
+  // --------------------------------------------------
   const api = useMemo<CartCtx>(
     () => ({
       items,
       loading,
-      totalCents: items.reduce((s, it) => s + it.priceCents * it.qty, 0),
+      discountPercent,
+      setDiscount: setDiscountPercent,
+
+      totalCents: Math.round(
+        items.reduce((s, it) => s + it.priceCents * it.qty, 0) *
+          (1 - discountPercent / 100)
+      ),
 
       async addItem(item, qty = 1) {
-        if (status !== "authenticated") {
-          // Not logged in → store locally
-          const raw = localStorage.getItem("cart:v1");
-          const existing = raw ? JSON.parse(raw) : [];
-          const idx = existing.findIndex((p: any) => p.id === item.id);
-          if (idx === -1) existing.push({ ...item, qty });
-          else existing[idx].qty += qty;
-          localStorage.setItem("cart:v1", JSON.stringify(existing));
-          setItems(existing);
-          return;
-        }
-
         await fetch("/api/cart", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -131,9 +158,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       async clear() {
         await fetch("/api/cart", { method: "DELETE" });
         setItems([]);
+        setDiscountPercent(0);
       },
     }),
-    [items, loading, status]
+    [items, loading, discountPercent]
   );
 
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>;

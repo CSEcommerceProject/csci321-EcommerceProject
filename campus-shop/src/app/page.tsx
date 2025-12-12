@@ -19,7 +19,7 @@ export default async function HomePage() {
           <Image src="/products/hatterLogo.jpg" alt="Stetson Hatters Logo" width={140} height={140} priority />
         </div>
         <h1 className="text-4xl sm:text-5xl font-extrabold">
-          Welcome to <span className="text-yellow-300">Campus Shop</span> 🛍️
+          Welcome to <span className="text-yellow-300">Hatter Shop</span> 🛍️
         </h1>
         <p className="mt-4 text-lg sm:text-xl text-white/90">
           Your trusted campus marketplace for quality, reliable items.
